@@ -13,10 +13,7 @@
 
 #include <Wire.h>
 #include <ESP8266WiFi.h>
-// #include <uMQTTBroker.h>
-#include <WebSocketsServer.h>
-// #include <Hash.h>
-#include <ArduinoJson.h>
+#include <uMQTTBroker.h>
 #include "FifoMessage.hpp"
 #include <LiquidCrystal_I2C.h>
 LiquidCrystal_I2C lcd(0x27, 20, 4); // call to lcd has to be before including bigFontChars
@@ -87,9 +84,50 @@ const char *password = "OcuNaInternet";
 // const char * ssid     = "HuaweIgor";
 // const char * password = "DajMiNet";
 
-StaticJsonDocument<50> json;
+/*
+ * MQTT custom broker class with overwritten callback functions
+ */
+class myMQTTBroker : public uMQTTBroker
+{
+public:
+  virtual bool onConnect(IPAddress addr, uint16_t client_count)
+  {
+    Serial.println(addr.toString() + " connected");
+    return true;
+  }
 
-WebSocketsServer webSocket = WebSocketsServer(80);
+  virtual bool onAuth(String username, String password)
+  {
+    Serial.println("Username/Password: " + username + "/" + password);
+    return true;
+  }
+
+  virtual void onData(String topic, const char *data, uint32_t length)
+  {
+    // this process gets rid of unwanted characters at the end of received data (? why is this)
+    char data_str[length + 1];
+    os_memcpy(data_str, data, length);
+    data_str[length] = '\0';
+
+    // process data to save values
+    if (topic == "broker/volume")
+    {
+      volume = atoi(data_str); // atoi() converts char array to integer, while toInt() converts String to integer
+      printVolume();
+      Serial.println("Volume set to " + volume);
+    }
+    else if (topic == "broker/filter")
+    {
+      filter = atoi(data_str); // atoi() converts char array to integer, while toInt() converts String to integer
+      printFilter();
+      Serial.println("Filter set to " + filter);
+    }
+
+    Serial.println("received topic '" + topic + "' with data '" + (String)data_str + "'");
+  }
+};
+
+myMQTTBroker myBroker;
 
 /************************ MAIN PROGRAM ************************************************************/
 
