@@ -3,8 +3,9 @@
   
   + dual AK4490 DACs
   + Ian's McFIFO with McDualXO reclocker
-  - updated display with BigFont volume
-  - control over WIFI (ESP8266 Croduino Nova 2)
+  + updated display with BigFont volume
+  + control over WIFI (ESP8266 Croduino Nova 2)
+  - MQTT instead of websockets
   - ADAU1452 DSP (MediaWorks Shenzen)
   
   (+ marks which devices are controlled in this file, other files will have other versions)
